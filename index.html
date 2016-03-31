@@ -1,9 +1,33 @@
 <html>
 <head>
 	<title>Test Page, Please Ignore</title>
+	<style>
+		.box {
+			width: 50px;
+			height: 50px;
+			border: 1px solid black;
+			background: #A0A000;
+			position: absolute;
+		}
+	</style>
 </head>
-<body>
+<body style="position: relative">
+<div style="background: #C0C0C0; width: 50%; height: 100%">
 This is a test. <br/>
 Eventually chat room here!
+</div>
+<div style="position: absolute; left: 50%; top: 0; background: #FF0000; width: 50%; height: 100%">
+	HI!<br/>
+	<br/>
+	<br/>
+	<br/>
+	<br/>
+	<br/>
+	This text can go wherever I want.</br>
+	It won't affect the floaty boxes.
+	<div class="box" style="left: 100px; top: 100px;">Floaty box?</div>
+	<div class="box" style="left: 200px; top: 30px;">Box 2</div>
+	<div class="box" style="left: 150px; top: 300px;">Too much text! What will happen?</div>
+</div>
 </body>
 </html>
