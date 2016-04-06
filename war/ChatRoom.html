@@ -24,6 +24,7 @@
     <!-- be added before this line.                -->
     <!--                                           -->
     <script type="text/javascript" language="javascript" src="chatroom/chatroom.nocache.js"></script>
+    <script type="text/javascript" language="javascript" src="canvasScript.js"></script>
   </head>
 
   <!--                                           -->
@@ -31,7 +32,7 @@
   <!-- you can leave the body empty if you want  -->
   <!-- to create a completely dynamic UI.        -->
   <!--                                           -->
-  <body style="position: relative">
+  <body style="position: relative" onload="initCanvas();">
 
     <!-- RECOMMENDED if your web app will not function without JavaScript enabled -->
     <noscript>
@@ -50,7 +51,11 @@
 	This is bad. Talk to me so I can fix it.
 	-->
 </div>
-<div id="rightPane" class="mainPane" style="left: 50%; background: #FF0000;">
+<div id="rightPane" class="mainPane" style="left: 50%; background: #A00000;">
+	<canvas id="canvas" style="border: 1px solid black;">
+		If you can see this, I'm afraid bot creation won't really work for you.<br/>
+		Use a browser that supports the &lt;canvas&gt; tag
+	</canvas>
 	HI!<br/>
 	<br/>
 	<br/>
@@ -59,9 +64,11 @@
 	<br/>
 	This text can go wherever I want.<br/>
 	It won't affect the floaty boxes.<br/>
+	<!--
 	<div class="box" style="left: 100px; top: 100px;">Floaty box?</div>
 	<div class="box" style="left: 200px; top: 30px;">Box 2</div>
 	<div class="box" style="left: 150px; top: 300px;">Too much text! What will happen?</div>
+	-->
 </div>
 </body>
 </html>
