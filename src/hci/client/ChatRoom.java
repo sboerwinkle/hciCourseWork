@@ -15,7 +15,10 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.core.client.Scheduler;
+import com.google.gwt.dom.client.Style;
+import java.util.Iterator;
 
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
@@ -35,8 +38,16 @@ public class ChatRoom implements EntryPoint {
 	private final GreetingServiceAsync greetingService = GWT.create(GreetingService.class);
 
 	VerticalPanel dialogVPanel;
-	int numMessages = 0;
 	int lastMessage = 0;
+	TextBox msgField;
+
+	double getTopMargin(Style s) {
+		String str = s.getMarginTop();
+		if (str.matches("[0-9.]*px")) {
+			return Double.parseDouble(str.split("px")[0]);
+		}
+		return 0;
+	}
 
 	void updateMessages() {
 		synchronized (dialogVPanel) {
@@ -53,14 +64,18 @@ public class ChatRoom implements EntryPoint {
 							numToSkip = MsgPack.QUEUE_LEN - (reply.index-lastMessage);
 						}
 						while (numToSkip < reply.msgs.length) {
-							dialogVPanel.add(new Label(reply.msgs[numToSkip]));
-							numMessages++;
+							dialogVPanel.add(new Label(reply.msgs[numToSkip], true));
 							numToSkip++;
 							lastMessage++;
 						}
-						while (numMessages > 30) {
-							numMessages--;
-							dialogVPanel.remove(0);
+						Iterator<Widget> iter = dialogVPanel.iterator();
+						Style s = dialogVPanel.getElement().getStyle();
+						while (dialogVPanel.getWidgetCount() > 30) {
+							Widget w = iter.next();
+							//msgField.setText(""+w.getOffsetHeight());
+							s.setMarginTop(getTopMargin(s)+w.getElement().getParentElement().getParentElement().getOffsetHeight(), Style.Unit.PX);
+							//msgField.setText(+"");
+							iter.remove();
 						}
 						lastMessage %= MsgPack.QUEUE_LEN;
 					}
@@ -73,8 +88,10 @@ public class ChatRoom implements EntryPoint {
 	 * This is the entry point method.
 	 */
 	public void onModuleLoad() {
-		final TextBox msgField = new TextBox();
+		msgField = new TextBox();
 		msgField.setText("Enter Message...");
+		msgField.removeStyleName("gwt-TextBox");
+		msgField.addStyleName("myTextBox");
 
 		RootPanel.get("textEntryDiv").add(msgField);
 		// Focus the cursor on the name field when the app loads
@@ -91,6 +108,14 @@ public class ChatRoom implements EntryPoint {
 				return true;
 			}
 		}, 1000);
+		Scheduler.get().scheduleFixedDelay(new Scheduler.RepeatingCommand() {
+			public boolean execute() {
+				Style s = dialogVPanel.getElement().getStyle();
+				double margin = getTopMargin(s);
+				if (margin > 0) s.setMarginTop(margin*0.9, Style.Unit.PX);
+				return true;
+			}
+		}, 80);
 
 		// Create a handler for the sendButton and msgField
 		class MyHandler implements KeyUpHandler {

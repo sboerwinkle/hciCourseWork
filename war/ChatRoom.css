@@ -15,8 +15,35 @@ h1 {
   width: 400px;
 }
 
+.myTextBox {
+	width: 100%;
+	height: 100%;
+	padding: 0px;
+	border: 0px;
+	margin: 0px;
+}
+
 .dialogVPanel {
   margin: 5px;
+  margin-top: 0px;
+  display: block;
+}
+
+.gwt-Label {
+	word-wrap: break-word;
+}
+
+.dialogVPanel tbody {
+	display: block;
+}
+
+.dialogVPanel tr {
+	display: block;
+	border-top: 1px solid black;
+}
+
+.dialogVPanel td {
+	display: block;
 }
 
 .serverResponseLabelError {
@@ -35,6 +62,7 @@ h1 {
 	background: #A0A000;
 	position: absolute;
 }
+
 .mainPane {
 	position: absolute;
 	width: 50%;
