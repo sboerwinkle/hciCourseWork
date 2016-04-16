@@ -19,9 +19,12 @@ w - width
 h - height
 color
 Top boxes have:
-	label
 	children
-In/Out boxes have:
+	label
+In boxes have:
+	owner
+	connection
+Out boxes have:
 	owner
 */
 
@@ -37,6 +40,11 @@ function keyPress(e) {
 		var rmMe = closest.type=="top" ? closest : closest.owner;
 		boxes[boxes.indexOf(rmMe)] = boxes[boxes.length-1];
 		boxes.length--;
+		for (var b of boxes) {
+			for (var c of b.children) {
+				if (c.type == "in" && c.connection != null && c.connection.owner == rmMe) c.connection = null;
+			}
+		}
 		selected = null;
 		findClosest();
 		render();
@@ -64,25 +72,38 @@ function mouseDown(e) {
 			return;
 		}
 	}
-	if (closest != null && boxDist(closest, e.offsetX, e.offsetY) <= 0) {
-		selected = closest;
+	if (closest != null) {
+		if (closest.type == "in") closest.connection = null;
+		else selected = closest;
+		render();
 	}
 }
 
 function mouseMove(e) {
 	mouseX = e.offsetX;
 	mouseY = e.offsetY;
-	if (selected != null) {
+	if (selected != null && selected.type == "top") {
 		selected.x = e.offsetX-selected.w/2;
 		selected.y = e.offsetY-selected.h/2;
 		if (selected.y < menuHeight) selected.y = menuHeight;
-	} else {
-		findClosest();
+		render();
+		return;
 	}
+	findClosest();
 	render();
+	if (selected != null && selected.type == "out") {
+		graphics.beginPath();
+		graphics.moveTo(selected.x + 3, selected.y + 3);
+		graphics.lineTo(mouseX, mouseY);
+		graphics.stroke();
+	}
 }
 
 function mouseUp(e) {
+	if (selected != null && selected.type == "out" && closest.type == "in") {
+		closest.connection = selected;
+		render();
+	}
 	selected = null;
 }
 
@@ -131,38 +152,15 @@ function render() {
 	graphics.moveTo(0, menuHeight);
 	graphics.lineTo(canvas.width, menuHeight);
 	graphics.stroke();
-	/*for (var b of boxes) {
-		for (var i = 0; i < boxes.length; i++) {
-			if (b.connections[i]) {
-				var X = boxes[i].x;
-				var Y = boxes[i].y;
-				var dx = X - b.x;
-				var dy = Y - b.y;
-				if (dx == 0 && dy == 0) continue;
-				//Compute how far we have to back up to reach the squares' edges
-				var factor;
-				if (Math.abs(dy) > Math.abs(dx)) {
-					factor = 10/Math.abs(dy);
-				} else {
-					factor = 10/Math.abs(dx);
-				}
-				dx *= factor;
-				dy *= factor;
-				graphics.beginPath();
-				//The arrow's shaft
-				graphics.moveTo(b.x+dx+10, b.y+dy+10)
-				X += 10-dx;
-				Y += 10-dy;
-				graphics.lineTo(X, Y);
-				//Draw the arrow head
-				graphics.lineTo(X-dx+dy, Y-dy-dx);
-				graphics.moveTo(X, Y);
-				graphics.lineTo(X-dx-dy, Y-dy+dx);
-				//End the path, draw the line.
-				graphics.stroke();
-			}
+	for (var b of boxes) {
+		for (var c of b.children) {
+			if (c.type == "out" || c.connection == null) continue;
+			graphics.beginPath();
+			graphics.moveTo(c.connection.x + 3, c.connection.y + 3);
+			graphics.lineTo(c.x + 3, c.y + 3);
+			graphics.stroke();
 		}
-	}*/
+	}
 }
 
 //The prototypical child. If you say child.x, it silently redirects to the x() function. This makes the children smoothly move with their parents.
@@ -176,9 +174,15 @@ function addChild(b, type) {
 	var tmp = Object.create(child);
 	tmp.type = type;
 	tmp.X = b.w*([0.0, 1.0, 0.5][sameCount]) - child.w/2;
-	tmp.Y = (type=="in" ? 0 : b.h) - child.h/2;
-	tmp.color = type=="in"?"#0f0":"#f00";
 	tmp.owner = b;
+	if (type == "in") {
+		tmp.connection = null;
+		tmp.Y = -child.h/2;
+		tmp.color = "#0f0";
+	} else {
+		tmp.Y = b.h - child.h/2;
+		tmp.color = "#f00";
+	}
 	b.children[b.children.length] = tmp;
 
 }
