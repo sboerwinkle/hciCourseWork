@@ -9,7 +9,7 @@ var closest = null;
 
 var mouseX = 0; mouseY = 0;
 
-var menuHeight = 20;
+var menuHeight = 16+10; // Box height plus 5px buffer on either side
 /*
 Boxes have:
 type - one of {"top", "in", "out"}
@@ -38,6 +38,7 @@ function keyPress(e) {
 		if (e.cancelable) e.preventDefault();
 		if (closest == null) return;
 		var rmMe = closest.type=="top" ? closest : closest.owner;
+		if (rmMe.label == "Start" || rmMe.label == "End") return; // These nodes can't be destroyed
 		boxes[boxes.indexOf(rmMe)] = boxes[boxes.length-1];
 		boxes.length--;
 		for (var b of boxes) {
@@ -187,40 +188,70 @@ function addChild(b, type) {
 
 }
 
+function createBox(name, r, g, b) {
+	var w = graphics.measureText(name).width;
+	var tmp = {
+		type:"top",
+		w:w+6,
+		h:16,
+		color:"rgb("+r+","+g+","+b+")",
+		label:name.toString(),
+		children:[]
+	};
+	return tmp;
+}
+
 function initBoxes() {
-	var numBoxes = 8;
-	menuBoxes = new Array(numBoxes);
+	var specs = [
+		["Split", 255, 255, 0, 2, 1],
+		["Unsplit", 255, 255, 0, 2, 1],
+		["Then", 128, 128, 128, 2, 1],
+		["Matches", 255, 0, 255, 2, 1],
+		["Random", 0, 0, 255, 0, 1],
+		["Select", 0, 255, 255, 3, 1]];
+	menuBoxes = [];
 	boxes = [];
-	for (var i = 0; i < numBoxes; i++) {
-		var tmp = {
-			type:"top",
-			x:25*i,
-			y:0,
-			w:20,
-			h:20,
-			color:"rgb("+(255*(i&1))+","+(255*((i&2)/2))+","+(255*((i&4)/4))+")",
-			label:i.toString(),
-			children:[]
-		};
-		menuBoxes[i] = tmp;
+	var menuSpaceUsed = 5;
+	var i = 0;
+	for (var s of specs) {
+		var tmp = createBox(s[0], s[1], s[2], s[3]);
+		while (s[4]--) addChild(tmp, "in");
+		while (s[5]--) addChild(tmp, "out");
+		tmp.x = menuSpaceUsed,
+		tmp.y = 5,
+		menuSpaceUsed += tmp.w+10;
+		menuBoxes[i++] = tmp;
 	}
-	addChild(menuBoxes[1], "in");
-	addChild(menuBoxes[1], "in");
-	addChild(menuBoxes[3], "in");
-	addChild(menuBoxes[3], "out");
-	/*boxes[0].connections[1] = true;
-	boxes[0].connections[3] = true;
-	boxes[0].connections[4] = true;
-	boxes[5].connections[3] = true;
-	boxes[5].connections[4] = true;
-	boxes[4].connections[5] = true;*/
+
+	boxes[0] = createBox("Start", 0, 255, 0);
+	addChild(boxes[0], "out");
+	boxes[0].x = (canvas.width-boxes[0].w)/2;
+	boxes[0].y = menuHeight;
+
+	boxes[1] = createBox("End", 255, 0, 0);
+	addChild(boxes[1], "in");
+	boxes[1].x = (canvas.width-boxes[1].w)/2;
+	boxes[1].y = canvas.height - boxes[1].h;
+}
+
+//Called when the user clicks on the "Add String Constant" button
+function addConstant() {
+	var textbox = document.getElementById("constantText");
+	var tmp = createBox("\""+textbox.value+"\"", 255, 255, 255);
+	textbox.value="";
+	addChild(tmp, "out");
+	tmp.x = 0;
+	tmp.y = menuHeight;
+	boxes[boxes.length] = tmp;
+	canvas.focus();
+	render();
 }
 
 function initCanvas() {
-	initBoxes();
 	canvas = document.getElementById("canvas")
 	graphics = canvas.getContext('2d');
 	graphics.lineWidth = 2;
+	initBoxes();
 	render();
 	canvas.onmousedown = mouseDown;
 	canvas.onmouseup = mouseUp;
