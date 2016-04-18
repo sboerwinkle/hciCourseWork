@@ -36,6 +36,35 @@ public class GreetingServiceImpl extends RemoteServiceServlet implements
 		return new MsgPack(hisLastMessage, ret);
 	}
 
+	public Integer addBot(String formula) {
+		char[] data = formula.toCharArray();
+		Bot b = new Bot();
+		for (int i = 0; i < data.length;) {
+			//First, pull the node's label.
+			StringBuilder sb = new StringBuilder();
+			for (; i < data.length && data[i] != '('; i++) {
+				if (data[i] == '\\') {
+					if (i < data.length-1) {
+						sb.append(data[++i]);
+					} else {
+						return 1;
+					}
+				} else {
+					sb.append(data[i]);
+				}
+			}
+			if (i >= data.length) return 1;
+			int j = b.addNode(sb.toString(), formula.substring(i));
+			if (j == -1) return 1;
+			i += j;
+		}
+		int res = b.compile();
+		if (res != 0) return res;
+		//Add the bot to the list
+		System.out.println(b);
+		return 0;
+	}
+
 	/**
 	 * Escape an html string. Escaping data received from the client helps to
 	 * prevent cross-site script vulnerabilities.

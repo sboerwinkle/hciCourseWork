@@ -23,8 +23,8 @@
     <!-- If you add any GWT meta tags, they must   -->
     <!-- be added before this line.                -->
     <!--                                           -->
-    <script type="text/javascript" language="javascript" src="chatroom/chatroom.nocache.js"></script>
     <script type="text/javascript" language="javascript" src="canvasScript.js"></script>
+    <script type="text/javascript" language="javascript" src="chatroom/chatroom.nocache.js"></script>
   </head>
 
   <!--                                           -->
@@ -44,10 +44,6 @@
 <div id="leftPane" class="mainPane" style="background: #C0C0C0;">
 	<div id="dialogDiv"> </div>
 	<div id="textEntryDiv" style="position: absolute; display: block; bottom: 0; left: 0; right: 0; padding: 5px; height: 2em; background: #0000FF;"></div>
-	<!--
-	The above div is used by my GWT thing. Wasn't sure how to combine GWT's directory structure with the git repo, so I just haven't for now.
-	This is bad. Talk to me so I can fix it.
-	-->
 </div>
 <div id="rightPane" class="mainPane" style="left: 50%; background: #A00000;">
 	&nbsp;<input id="constantText" type="text"/>&nbsp;<input value="Add String Constant" type="button" onclick="addConstant();"/><br/>
@@ -55,6 +51,9 @@
 		If you can see this, I'm afraid bot creation won't really work for you.<br/>
 		Use a browser that supports the &lt;canvas&gt; tag
 	</canvas>
+	<br/>
+	<div id="submitBotContainer"></div>
+	<div id="botErrorContainer"></div>
 </div>
 </body>
 </html>

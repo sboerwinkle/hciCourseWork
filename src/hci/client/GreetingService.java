@@ -10,4 +10,5 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 public interface GreetingService extends RemoteService {
   void postMessage(String msg);
   MsgPack getMessages(int lastPos);
+  Integer addBot(String bot);
 }

@@ -8,4 +8,5 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 public interface GreetingServiceAsync {
   void postMessage(String msg, AsyncCallback<Void> callback);
   void getMessages(int lastPos, AsyncCallback<MsgPack> callback);
+  void addBot(String bot, AsyncCallback<Integer> callbac);
 }

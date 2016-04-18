@@ -223,15 +223,27 @@ function initBoxes() {
 		menuBoxes[i++] = tmp;
 	}
 
-	boxes[0] = createBox("Start", 0, 255, 0);
-	addChild(boxes[0], "out");
+	boxes[0] = createBox("End", 255, 0, 0);
+	addChild(boxes[0], "in");
 	boxes[0].x = (canvas.width-boxes[0].w)/2;
-	boxes[0].y = menuHeight;
+	boxes[0].y = canvas.height - boxes[0].h;
 
-	boxes[1] = createBox("End", 255, 0, 0);
-	addChild(boxes[1], "in");
+	boxes[1] = createBox("Start", 0, 255, 0);
+	addChild(boxes[1], "out");
 	boxes[1].x = (canvas.width-boxes[1].w)/2;
-	boxes[1].y = canvas.height - boxes[1].h;
+	boxes[1].y = menuHeight;
+}
+
+function initCanvas() {
+	canvas = document.getElementById("canvas")
+	graphics = canvas.getContext('2d');
+	graphics.lineWidth = 2;
+	initBoxes();
+	render();
+	canvas.onmousedown = mouseDown;
+	canvas.onmouseup = mouseUp;
+	canvas.onmousemove = mouseMove;
+	canvas.onkeydown = keyPress;
 }
 
 //Called when the user clicks on the "Add String Constant" button
@@ -247,14 +259,20 @@ function addConstant() {
 	render();
 }
 
-function initCanvas() {
-	canvas = document.getElementById("canvas")
-	graphics = canvas.getContext('2d');
-	graphics.lineWidth = 2;
-	initBoxes();
-	render();
-	canvas.onmousedown = mouseDown;
-	canvas.onmouseup = mouseUp;
-	canvas.onmousemove = mouseMove;
-	canvas.onkeydown = keyPress;
+//Called from GWT code to get the results of the build-a-bot'ing
+window.getBotString = function() {
+	var ret = "";
+	for (var b of boxes) {
+		var text = b.label.replace(/\\/g, "\\\\").replace(/\(/g, "\\(");
+		ret += text+"(";
+		for (var c of b.children) {
+			if (c.type=="out") continue;
+			first = false;
+			if (c.connection == null) return "";
+			ret += boxes.indexOf(c.connection.owner);
+			ret += ",";
+		}
+		ret += ")";
+	}
+	return ret;
 }

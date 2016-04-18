@@ -1,7 +1,10 @@
 package hci.client;
 //sup
+import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyCodes;
@@ -16,8 +19,6 @@ import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
-import com.google.gwt.core.client.Scheduler;
-import com.google.gwt.dom.client.Style;
 import java.util.Iterator;
 
 /**
@@ -97,6 +98,35 @@ public class ChatRoom implements EntryPoint {
 		// Focus the cursor on the name field when the app loads
 		msgField.setFocus(true);
 		msgField.selectAll();
+
+		final Button submitBotButton = new Button("Submit Bot");
+		RootPanel.get("submitBotContainer").add(submitBotButton);
+		submitBotButton.addClickHandler(new ClickHandler() {
+			public native String pollCanvasScript() /*-{
+				return $wnd.getBotString();
+			}-*/;
+			public void onClick(ClickEvent e) {
+				String res = pollCanvasScript();
+				final Element errorContainer = RootPanel.get("botErrorContainer").getElement();
+				if (res.equals("")) {
+					errorContainer.setInnerHTML("Error: Floating Inputs");
+				} else {
+					errorContainer.setInnerHTML("");
+					greetingService.addBot(res, new AsyncCallback<Integer>() {
+						public void onFailure(Throwable caught) {
+							errorContainer.setInnerHTML(caught.toString());
+						}
+						public void onSuccess(Integer I) {
+							int i = I;
+							if (i == 0) errorContainer.setInnerHTML("Bot sent successfully!");
+							else if (i == 1) errorContainer.setInnerHTML("Error: Request syntax error.<br/>Resubmit. If problems persist, refresh page.");
+							else if (i == 2) errorContainer.setInnerHTML("Error: Your bot contains a cycle / loop.");
+						}
+					});
+				}
+				RootPanel.get("canvas").getElement().focus();
+			}
+		});
 
 		dialogVPanel = new VerticalPanel();
 		RootPanel.get("dialogDiv").add(dialogVPanel);
