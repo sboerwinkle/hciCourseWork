@@ -1,8 +1,9 @@
 package hci.server;
 
+import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import hci.client.GreetingService;
 import hci.client.MsgPack;
-import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import java.util.LinkedList;
 
 /**
  * The server-side implementation of the RPC service.
@@ -13,12 +14,19 @@ public class GreetingServiceImpl extends RemoteServiceServlet implements
 
 	String[] msgs = new String[MsgPack.QUEUE_LEN];
 	int lastMessage = 0;
+	LinkedList<Bot> bots = new LinkedList<Bot>();
 
 	public void postMessage(String msg) {
 		synchronized(this) {
 			//msg = escapeHtml(msg); // Shouldn't be necessary since the clients display the results in GWT labels
 			msgs[lastMessage++] = msg;
 			if (lastMessage == MsgPack.QUEUE_LEN) lastMessage = 0;
+			for (Bot b : bots) {
+				String s = b.evaluate(msg);
+				if (s.equals("")) continue;
+				msgs[lastMessage++] = s;
+				if (lastMessage == MsgPack.QUEUE_LEN) lastMessage = 0;
+			}
 		}
 	}
 
@@ -60,8 +68,10 @@ public class GreetingServiceImpl extends RemoteServiceServlet implements
 		}
 		int res = b.compile();
 		if (res != 0) return res;
-		//Add the bot to the list
-		System.out.println(b);
+		synchronized(this) {
+			bots.add(b);
+		}
+		System.out.println("Adding bot: " + b);
 		return 0;
 	}
 

@@ -1,10 +1,15 @@
 package hci.server;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Random;
+import java.util.regex.PatternSyntaxException;
 
 class Bot {
 
-	ArrayList<Node> nodes = null;
+	private Random rand = new Random();
+	private ArrayList<Node> nodes = null;
+	private String input;
 
 	int addNode(String label, String rest) {
 		Node addme;
@@ -27,6 +32,10 @@ class Bot {
 		if (nodes == null) return 1;
 		if (nodes.get(0).compile(nodes)) return 2;
 		return 0;
+	}
+	String evaluate(String in) {
+		input = in;
+		return nodes.get(0).getChunk()[0];
 	}
 	public String toString() {
 		StringBuilder ret = new StringBuilder();
@@ -87,54 +96,136 @@ class Bot {
 			ret.append(")");
 			return ret.toString();
 		}
+
+		//The result of getChunk() should only change if one of the inputs.getChunk() changes.
+		//The exception is Random and Start, which may change despite not having inputs.
+		abstract String[] getChunk();
+	}
+	//Wraps a Node to allow for getting a single string at a time.
+	//I don't want this in the node class itself, because this way
+	//it's harder to code the "wrong" behavior of not resetting
+	//inputNode's stream between calls to requestingNode.getChunk()
+	class Stream {
+		String[] lastChunk;
+		int index;
+		Node pullFrom;
+		Stream(Node n) {
+			pullFrom = n;
+			lastChunk = pullFrom.getChunk();
+			index = 0;
+		}
+		String next() {
+			while (index >= lastChunk.length) {
+				lastChunk = pullFrom.getChunk();
+				index = 0;
+			}
+			return lastChunk[index++];
+		}
 	}
 	class StartNode extends Node {
 		StartNode() {
 			super(0);
 		}
 		public String toString() {return "Start"+argsToString();}
+		String[] getChunk() {return new String[] {input};}
 	}
 	class EndNode extends Node {
 		EndNode() {
 			super(1);
 		}
 		public String toString() {return "End"+argsToString();}
+		String[] getChunk() {return inputs[0].getChunk();}
 	}
 	class SplitNode extends Node {
 		SplitNode() {
 			super(2);
 		}
 		public String toString() {return "Split"+argsToString();}
+		String[] getChunk() {
+			Stream patterns = new Stream(inputs[1]);
+			LinkedList<String> ret = new LinkedList<String>();
+			try {
+				for (String s : inputs[0].getChunk()) {
+					String[] spl = new String[] {null, s};
+					do {
+						spl = spl[1].split(patterns.next(), 2);
+						ret.add(spl[0]);
+					} while (spl.length == 2);
+				}
+			} catch(PatternSyntaxException e){} // Bail on error
+			return ret.toArray(new String[0]);
+		}
 	}
 	class UnsplitNode extends Node {
 		UnsplitNode() {
 			super(2);
 		}
-		public String toString() {return "unSplit"+argsToString();}
+		public String toString() {return "Unsplit"+argsToString();}
+		String[] getChunk() {
+			Stream glue = new Stream(inputs[1]);
+			String[] bits = inputs[0].getChunk();
+			StringBuilder sb = new StringBuilder(bits[0]);
+			for (int i = 1; i < bits.length; i++) {
+				sb.append(glue.next());
+				sb.append(bits[i]);
+			}
+			return new String[] {sb.toString()};
+		}
 	}
 	class ThenNode extends Node {
 		ThenNode() {
 			super(2);
 		}
 		public String toString() {return "Then"+argsToString();}
+		String[] getChunk() {
+			String[] arr1 = inputs[0].getChunk();
+			String[] arr2 = inputs[1].getChunk();
+			String[] ret = new String[arr1.length + arr2.length];
+			System.arraycopy(arr1, 0, ret, 0, arr1.length);
+			System.arraycopy(arr2, 0, ret, arr1.length, arr2.length);
+			return ret;
+		}
 	}
 	class MatchesNode extends Node {
 		MatchesNode() {
 			super(2);
 		}
 		public String toString() {return "Matches"+argsToString();}
+		String[] getChunk() {
+			Stream patterns = new Stream(inputs[1]);
+			String[] in = inputs[0].getChunk();
+			String[] ret = new String[in.length];
+			for (int i = 0; i < in.length; i++) {
+				ret[i] = in[i].matches(patterns.next()) ? "T" : "F";
+			}
+			return ret;
+		}
 	}
 	class RandomNode extends Node {
 		RandomNode() {
 			super(0);
 		}
 		public String toString() {return "Random"+argsToString();}
+		String[] getChunk() {
+			return new String[] {rand.nextBoolean() ? "T" : "F"};
+		}
 	}
 	class SelectNode extends Node {
 		SelectNode() {
 			super(3);
 		}
 		public String toString() {return "Select"+argsToString();}
+		String[] getChunk() {
+			Stream choices = new Stream(inputs[2]);
+			Stream alternatives = new Stream(inputs[1]);
+			String[] main = inputs[0].getChunk();
+			String[] ret = new String[main.length];
+			for (int i = 0; i < main.length; i++) {
+				String alt = alternatives.next();
+				ret[i] = choices.next().equals("T") ? main[i] : alt;
+			}
+			return ret;
+		}
 	}
 	class ConstantNode extends Node {
 		String text;
@@ -147,5 +238,8 @@ class Bot {
 			}
 		}
 		public String toString() {return "\""+text+"\""+argsToString();}
+		String[] getChunk() {
+			return new String[] {text};
+		}
 	}
 }
