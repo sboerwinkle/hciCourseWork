@@ -144,15 +144,17 @@ class Bot {
 		String[] getChunk() {
 			Stream patterns = new Stream(inputs[1]);
 			LinkedList<String> ret = new LinkedList<String>();
-			try {
-				for (String s : inputs[0].getChunk()) {
-					String[] spl = new String[] {null, s};
-					do {
+			for (String s : inputs[0].getChunk()) {
+				String[] spl = new String[] {null, s};
+				do {
+					try {
 						spl = spl[1].split(patterns.next(), 2);
-						ret.add(spl[0]);
-					} while (spl.length == 2);
-				}
-			} catch(PatternSyntaxException e){} // Bail on error
+					} catch(PatternSyntaxException e){
+						spl = spl[1].split("", 2);
+					}
+					ret.add(spl[0]);
+				} while (spl.length == 2);
+			}
 			return ret.toArray(new String[0]);
 		}
 	}
@@ -196,7 +198,11 @@ class Bot {
 			String[] in = inputs[0].getChunk();
 			String[] ret = new String[in.length];
 			for (int i = 0; i < in.length; i++) {
-				ret[i] = in[i].matches(patterns.next()) ? "T" : "F";
+				try {
+					ret[i] = in[i].matches(patterns.next()) ? "T" : "F";
+				} catch (PatternSyntaxException e) {
+					ret[i] = "F";
+				}
 			}
 			return ret;
 		}

@@ -142,6 +142,19 @@ function findClosest() {
 			}
 		}
 	}
+	if (!showHelp.checked) return;
+	best = (closest.type=="top" ? closest : closest.owner).label;
+	var text = "I have no idea what this is. How did it get here?";
+	if (best == "Start") text="Emits a single string whenever a human posts something.<br/><br/>Some conventions:<br/>\"Channel\"s are the green things.<br/>\"Pull\"ing a string from a channel always succeeds. If the channel is out of strings, it is reset.<br/>\"Regular expression\"s are parsed like Java does (and are in fact parsed by Java)<br/>\"Emit\"ing a string or strings means to send it out of the red thing.<br/>Loops aren't allowed, since they might run forever.";
+	else if (best == "End") text="The first string to get here is the bot's reply.<br/>If this is the empty string, the bot won't reply.";
+	else if (best == "Split") text="For each input string on the first channel, repeatedly pulls regular expressions from the second channel and uses them to make one split each.<br/>Emits the pieces of the chopped-up strings in series.";
+	else if (best == "Unsplit") text="Reads in all the strings from the first channel, and pulls strings from the second channel to use as glue.<br/>Emits a single string, which is the glued-together bits from the first channel.";
+	else if (best == "Then") text="Emits every string from the first channel,<br/>then every string from the second channel.";
+	else if (best == "Matches") text="For each string on the first channel, pulls a regular expression from the second channel.<br/>Emits \"T\" if the string matches the regex, and \"F\" if it doesn't match or the regex isn't legal.";
+	else if (best == "Random") text="Emits a \"T\" or a \"F\". This value can't be copied - If you try, you get independent random values.<br/>If you pull more than one value out of this node, the answers you get are independent of each other.";
+	else if (best == "Select") text="For each string in the left channel, pulls a \"logical\" from the middle channel and an alternative from the right channel.<br/>If the logical is \"T\", emits the left channel's string. Otherwise, emits the alternative.";
+	else if (best.startsWith("\"")) text="A constant node. Emits a single string, which is whatever's inside the quotation marks.";
+	helpArea.innerHTML = "<b>"+best.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")+"</b><br/>"+text;
 }
 
 function render() {
@@ -234,7 +247,12 @@ function initBoxes() {
 	boxes[1].y = menuHeight;
 }
 
+var showHelp = {checked: false};
+var helpArea;
+
 function initCanvas() {
+	showHelp = document.getElementById("showHelp");
+	helpArea = document.getElementById("botErrorContainer");
 	canvas = document.getElementById("canvas")
 	graphics = canvas.getContext('2d');
 	graphics.lineWidth = 2;

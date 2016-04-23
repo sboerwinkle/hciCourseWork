@@ -45,15 +45,15 @@
 	<div id="dialogDiv"> </div>
 	<div id="textEntryDiv" style="position: absolute; display: block; bottom: 0; left: 0; right: 0; padding: 5px; height: 2em; background: #0000FF;"></div>
 </div>
-<div id="rightPane" class="mainPane" style="left: 50%; background: #A00000;">
-	&nbsp;<input id="constantText" type="text"/>&nbsp;<input value="Add String Constant" type="button" onclick="addConstant();"/><br/>
+<div id="rightPane" class="mainPane" style="left: 50%; background: #A00000; color: #fff;">
+	<input id="constantText" type="text"/>&nbsp;<input value="Add String Constant" type="button" onclick="addConstant();"/><br/>
 	<canvas tabindex='1' id="canvas" style="border: 1px solid black;" width=400 height=400>
 		If you can see this, I'm afraid bot creation won't really work for you.<br/>
 		Use a browser that supports the &lt;canvas&gt; tag
 	</canvas>
 	<br/>
-	<div id="submitBotContainer"></div>
-	<div id="botErrorContainer"></div>
+	<span id="submitBotContainer"></span> Show help:<input id="showHelp" type="checkbox" checked="true"/> <br/>
+	<div  id="botErrorContainer"></div>
 </div>
 </body>
 </html>
